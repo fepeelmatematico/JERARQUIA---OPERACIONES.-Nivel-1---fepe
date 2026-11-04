@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jerarquía de operaciones · Nivel 1 | Fepe el Matemático</title>
+<style>
+:root{font-family:system-ui,-apple-system,Arial,sans-serif;color:#f5f8ff;background:#101b2b}*{box-sizing:border-box}body{margin:0;padding:18px}main{max-width:650px;margin:auto}.brand{text-align:center;color:#ffd66b;font-weight:850;letter-spacing:.04em;font-size:.92rem}h1{text-align:center;font-size:clamp(1.7rem,5.5vw,2.35rem);margin:12px 0}p{text-align:center;color:#cbd9e8;line-height:1.5}.card{background:#1b2d42;border:1px solid #3a5369;border-radius:20px;padding:22px;margin:20px 0;box-shadow:0 12px 30px #0004}.progress{font-weight:800;color:#ffd66b;margin-bottom:14px}.expr{font-size:clamp(1.6rem,6vw,2.4rem);text-align:center;margin:28px 0;min-height:80px;display:flex;align-items:center;justify-content:center;gap:.15em;flex-wrap:wrap}.fraction{display:inline-flex;vertical-align:middle;flex-direction:column;text-align:center;line-height:1.1;font-size:.78em}.fraction>span:first-child{border-bottom:2px solid currentColor;padding:0 8px 4px}.fraction>span:last-child{padding-top:4px}label{display:block;margin:12px 0 8px;font-weight:750}input{width:100%;padding:16px;border:2px solid #718ba2;background:#0b1827;color:white;border-radius:12px;font-size:1.35rem;text-align:center}button{border:0;border-radius:12px;background:#ffd66b;color:#192335;padding:16px 18px;font-weight:850;font-size:1.1rem;cursor:pointer;width:100%;margin-top:14px}button:disabled{opacity:.5;cursor:default}.feedback{font-size:3rem;text-align:center;min-height:65px;font-weight:900}.good{color:#5ee39c}.bad{color:#ff6b77}.small{text-align:center;font-size:.88rem}.hidden{display:none!important}.score{text-align:center;font-size:3.2rem;font-weight:900;color:#ffd66b}.row{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}.dot{width:33px;height:33px;border-radius:50%;background:#344a60;display:grid;place-items:center;font-weight:800}.dot.good{background:#174a36}.dot.bad{background:#5b2835}footer{text-align:center;color:#9cb0c5;font-size:.82rem;margin-top:25px}#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9999}.confetti-piece{position:absolute;top:-20px;width:11px;height:19px;opacity:0;animation:fall var(--dur) ease-in forwards}@keyframes fall{0%{transform:translate3d(0,-20px,0) rotate(0);opacity:1}85%{opacity:1}100%{transform:translate3d(var(--dx),105vh,0) rotate(var(--rot));opacity:0}}@media(prefers-reduced-motion:reduce){.confetti-piece{animation-duration:.5s!important}}button:focus-visible,input:focus-visible{outline:3px solid white;outline-offset:3px}#sync{font-size:.82rem;color:#9cb0c5}
+</style>
+</head>
+<body><div id="confetti" aria-hidden="true"></div><main>
+<div class="brand">🔎 DETECTIVES MATEMÁTICOS · CONTANDO ANDO</div>
+<h1>🧮 Jerarquía de operaciones · Nivel 1</h1>
+<p>Fepe el Matemático · Primero de secundaria · 12 ejercicios</p>
+<section class="card" id="quiz"><div class="progress" id="progress"></div><div class="row" id="dots" aria-label="Avance de respuestas"></div><div class="expr" id="expr"></div><label for="answer">Escribe tu resultado:</label><input id="answer" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej.: 12, 2.5 o 2.6"><button id="check">Comprobar respuesta</button><div class="feedback" id="feedback" role="status" aria-live="polite"></div><button id="next" class="hidden">Siguiente ejercicio →</button><p class="small">✓ Acierto · ✕ Inténtalo de nuevo en la siguiente partida. En el ejercicio j), escribe 2.6 (truncado a un decimal).</p></section>
+<section class="card hidden" id="finish"><h2 style="text-align:center">¡Reto terminado!</h2><div class="score" id="score"></div><p id="message"></p><div class="row" id="finalDots"></div><p id="sync" role="status" aria-live="polite"></p><button id="retry">🔄 ¡Inténtalo otra vez!</button></section>
+<footer>Aprender matemáticas es practicar, descubrir y mejorar. ✨</footer></main>
+<script>
+'use strict';
+const frac=(top,bottom)=>`<span class="fraction"><span>${top}</span><span>${bottom}</span></span>`;
+const tasks=[
+ {letter:'a',q:'2 − (3 + 2) + 5 × 3',a:12},
+ {letter:'b',q:'2 − 3 + (2 + 5) × 3',a:20},
+ {letter:'c',q:frac('14 − 9','3 + 2'),a:1},
+ {letter:'d',q:'14 − '+frac('9','3')+' + 2',a:13},
+ {letter:'e',q:'10 + 2.5 × 4',a:20},
+ {letter:'f',q:'(10 + 2.5) × 4',a:50},
+ {letter:'g',q:'35 − 4 × 3 + 15 ÷ 3',a:28},
+ {letter:'h',q:'(35 − 4) × 3 + 15 ÷ 3',a:98},
+ {letter:'i',q:'5 + 3 × '+frac('1','3'),a:6},
+ {letter:'j',q:'(5 + 3) × '+frac('1','3'),a:8/3},
+ {letter:'k',q:'(5.3 − 4.3 + 3.5) × 6',a:27},
+ {letter:'l',q:'5.3 − 4.3 + 3.5 × 6',a:22}
+];
+let i=0,results=[],completed=false;const $=id=>document.getElementById(id);
+function dots(target,arr){$(target).innerHTML=tasks.map((_,j)=>'<span class="dot '+(arr[j]===true?'good':arr[j]===false?'bad':'')+'">'+(arr[j]===true?'✓':arr[j]===false?'✕':j+1)+'</span>').join('')}
+function render(){$('progress').textContent='Ejercicio '+(i+1)+' de '+tasks.length+' · Inciso '+tasks[i].letter+')';$('expr').innerHTML=tasks[i].q+' = ?';$('answer').value='';$('answer').disabled=false;$('check').disabled=false;$('check').classList.remove('hidden');$('feedback').textContent='';$('feedback').className='feedback';$('next').classList.add('hidden');dots('dots',results)}
+let audioContext;function playSound(correct){try{audioContext=audioContext||new(window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();const t=audioContext.currentTime;const tone=(freq,start,duration,type='sine',vol=.13)=>{const o=audioContext.createOscillator(),g=audioContext.createGain();o.type=type;o.frequency.setValueAtTime(freq,t+start);g.gain.setValueAtTime(.0001,t+start);g.gain.exponentialRampToValueAtTime(vol,t+start+.015);g.gain.exponentialRampToValueAtTime(.0001,t+start+duration);o.connect(g);g.connect(audioContext.destination);o.start(t+start);o.stop(t+start+duration+.02)};if(correct){[523.25,659.25,783.99,1046.5].forEach((n,k)=>tone(n,k*.095,.22,'triangle',.12))}else{tone(280,0,.16,'sawtooth',.055);tone(190,.16,.23,'sawtooth',.05)}}catch(e){}}
+function celebrate(){const layer=$('confetti');layer.replaceChildren();const colors=['#ffd66b','#5ee39c','#62b9ff','#ff77b8','#ffffff','#a68cff'];for(let j=0;j<75;j++){const el=document.createElement('span');el.className='confetti-piece';el.style.left=Math.random()*100+'%';el.style.background=colors[j%colors.length];el.style.setProperty('--dx',Math.random()*240-120+'px');el.style.setProperty('--rot',Math.random()*1080-540+'deg');el.style.setProperty('--dur',2+Math.random()*1.6+'s');el.style.animationDelay=Math.random()*.3+'s';layer.appendChild(el)}setTimeout(()=>layer.replaceChildren(),4300)}
+function parseAnswer(raw){const value=raw.trim().replace(',','.');if(/^[-+]?\d+(?:\.\d+)?\s*\/\s*[-+]?\d+(?:\.\d+)?$/.test(value)){const [a,b]=value.split('/').map(Number);return b===0?NaN:a/b}return /^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)?Number(value):NaN}
+function check(){const raw=$('answer').value.trim();const value=parseAnswer(raw);if(!raw||!Number.isFinite(value)){alert('Escribe un número válido, por ejemplo 12, 2.5 o 2.6.');return}const correct=(i===9&&Math.abs(value-2.6)<1e-8)||Math.abs(value-tasks[i].a)<1e-8;results[i]=correct;playSound(correct);if(correct)celebrate();$('feedback').textContent=correct?'✓':'✕';$('feedback').className='feedback '+(correct?'good':'bad');$('answer').disabled=true;$('check').disabled=true;$('check').classList.add('hidden');$('next').textContent=i===tasks.length-1?'Ver mi calificación →':'Siguiente ejercicio →';$('next').classList.remove('hidden');dots('dots',results)}
+function next(){if(results[i]===undefined)return;i++;if(i<tasks.length){render();return}$('quiz').classList.add('hidden');$('finish').classList.remove('hidden');const hits=results.filter(Boolean).length,pct=hits/tasks.length*100;$('score').textContent=pct.toLocaleString('es-MX',{maximumFractionDigits:1})+'%';$('message').textContent=pct===100?'🏆 ¡Excelente! Lograste el 100%. ¡Eres un detective matemático experto!':'Conseguiste '+hits+' de '+tasks.length+' aciertos. ¡Sigue practicando!';dots('finalDots',results);if(pct===100)setTimeout(()=>{playSound(true);celebrate()},250);if(!completed){completed=true;window.dispatchEvent(new CustomEvent('fepe-partida-terminada',{detail:{aciertos:hits}}))}}
+$('check').addEventListener('click',check);$('next').addEventListener('click',next);$('retry').addEventListener('click',()=>{i=0;results=[];completed=false;$('finish').classList.add('hidden');$('quiz').classList.remove('hidden');render()});$('answer').addEventListener('keydown',e=>{if(e.key==='Enter'){if(!$('check').disabled)check();else if(!$('next').classList.contains('hidden'))next()}});render();
+</script>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js';
+import {getAuth,signInAnonymously} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js';
+import {getFirestore,doc,setDoc,increment} from 'https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js';
+const firebaseConfig={apiKey:'AIzaSyBzuElrwwGCnB7Ve78OqmBeokti404hnZI',authDomain:'detectives-matematicos-fb1b5.firebaseapp.com',projectId:'detectives-matematicos-fb1b5',storageBucket:'detectives-matematicos-fb1b5.firebasestorage.app',messagingSenderId:'377401070078',appId:'1:377401070078:web:90f7db9dc5216b1f09b0af',measurementId:'G-3GC47H9END'};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+let authPromise;
+function getSession(){return authPromise??=signInAnonymously(auth)}
+getSession().catch(()=>{});
+window.addEventListener('fepe-partida-terminada',async event=>{const status=document.getElementById('sync');status.textContent='Guardando estadísticas anónimas…';try{await getSession();await setDoc(doc(db,'estadisticas_juegos','nivel_1'),{partidas_acumuladas:increment(1),respuestas_correctas:increment(event.detail.aciertos)},{merge:true});status.textContent='✓ Estadísticas registradas.'}catch(error){console.error('No se pudieron guardar las estadísticas:',error);status.textContent='Tu calificación está lista. No se pudieron registrar las estadísticas; comprueba la conexión y las reglas de Firebase.'}});
+</script>
+</body></html>
